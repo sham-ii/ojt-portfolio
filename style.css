@@ -119,7 +119,10 @@ h1 em, h2 em { color: var(--teal); font-style: normal; }
 .resume-section { border-top: 1px solid var(--line); }
 .resume-layout { align-items: center; display: grid; gap: 9%; grid-template-columns: .75fr 1.25fr; }
 .resume-display { align-items: start; display: flex; justify-content: center; min-width: 0; overflow: hidden; }
-.resume-document-frame { aspect-ratio: 210 / 297; background: white; border: 0; box-shadow: var(--shadow); display: block; height: auto; max-width: 100%; min-height: 620px; pointer-events: none; width: 210mm; }
+.resume-document-canvas { background: white; box-shadow: var(--shadow); display: block; height: auto; max-width: 100%; width: 210mm; }
+.resume-document-fallback { aspect-ratio: 210 / 297; background: white; border: 0; box-shadow: var(--shadow); display: block; height: auto; max-width: 100%; width: 210mm; }
+.resume-document-fallback[hidden] { display: none; }
+.resume-load-error { color: var(--muted); font-size: 13px; margin: 15px 0 0; }
 .resume-layout > .resume-paper { display: none; }
 .resume-intro > p:not(.eyebrow) { color: var(--muted); font-size: 15px; margin: 27px 0 30px; max-width: 350px; }
 .resume-paper { background: white; box-shadow: var(--shadow); padding: 40px 45px; }
@@ -138,8 +141,8 @@ h1 em, h2 em { color: var(--teal); font-style: normal; }
 .resume-preview-toolbar { align-items: center; display: flex; gap: 10px; justify-content: flex-end; width: min(210mm, 100%); }
 .resume-preview-paper { background: white; box-shadow: 0 20px 70px rgba(0,0,0,.3); box-sizing: border-box; color: var(--ink); flex: 0 0 auto; height: 297mm; overflow: hidden; padding: 14mm 15mm; width: 210mm; }
 .resume-preview-paper > .resume-paper { box-shadow: none; padding: 0; }
-.resume-preview-paper > .resume-document-frame { box-shadow: none; height: 297mm; max-height: none; min-height: 0; width: 210mm; }
-.resume-preview-paper > .resume-preview-frame { pointer-events: none; }
+.resume-preview-paper > .resume-preview-canvas { box-shadow: none; display: block; height: 297mm; width: 210mm; }
+.resume-preview-paper > .resume-preview-frame { border: 0; box-shadow: none; display: block; height: 297mm; width: 210mm; }
 .resume-preview-paper .resume-paper-top { align-items: end; }
 .resume-preview-paper .resume-paper h3 { font-size: 23px; margin: 0 0 2px; }
 .resume-preview-paper .resume-paper-top p:last-child { font-size: 9px; }
@@ -226,7 +229,7 @@ body.resume-preview-open { overflow: hidden; }
   .achievement-item { gap: 15px; grid-template-columns: 48px 1fr 22px; }
   .achievement-item h3 { font-size: 18px; }
   .resume-paper { padding: 28px 22px; }
-  .resume-document-frame { height: auto; min-height: 0; width: 100%; }
+  .resume-document-canvas { width: 100%; }
   .resume-columns { gap: 22px; grid-template-columns: 1fr; }
   .resume-paper h3 { font-size: 24px; }
   .offer-points { grid-template-columns: 1fr; }
@@ -242,5 +245,6 @@ body.resume-preview-open { overflow: hidden; }
   body > *:not(.resume-preview) { display: none !important; }
   .resume-preview { background: white; display: block !important; inset: auto; overflow: visible; padding: 0; position: static; }
   .resume-preview-toolbar { display: none !important; }
-  .resume-preview-paper { box-shadow: none; height: 297mm; padding: 14mm 15mm; width: 210mm; }
+  .resume-preview-paper { box-shadow: none; height: 297mm; padding: 0; width: 210mm; }
+  .resume-preview-paper > .resume-preview-canvas { height: 297mm; width: 210mm; }
 }

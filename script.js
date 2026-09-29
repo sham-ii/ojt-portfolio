@@ -40,7 +40,9 @@ const activeSectionObserver = new IntersectionObserver((entries) => {
 
 sections.forEach((section) => activeSectionObserver.observe(section));
 
-const resumeSource = document.querySelector('[data-resume-frame]');
+const resumeCanvas = document.querySelector('[data-resume-canvas]');
+const resumeFallback = document.querySelector('[data-resume-fallback]');
+const resumeLoadError = document.querySelector('[data-resume-load-error]');
 const resumePreview = document.querySelector('[data-resume-preview]');
 const resumePreviewPaper = document.querySelector('[data-resume-preview-paper]');
 const previewResumeButton = document.querySelector('[data-preview-resume]');
@@ -48,10 +50,48 @@ const closeResumeButton = document.querySelector('[data-close-resume]');
 const printResumeButtons = document.querySelectorAll('[data-print-resume]');
 const downloadResumeButton = document.querySelector('[data-download-resume]');
 
+const resumePdfUrl = 'Sapeda_OJT%20Resume.pdf?v=20260929-2048';
+const showResumeFallback = () => {
+  resumeCanvas.hidden = true;
+  resumeFallback.hidden = false;
+};
+const renderResume = async (canvas) => {
+  if (!window.pdfjsLib) throw new Error('PDF renderer unavailable');
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const pdf = await window.pdfjsLib.getDocument(resumePdfUrl).promise;
+  const page = await pdf.getPage(1);
+  const displayWidth = Math.max(canvas.parentElement.clientWidth, 320);
+  const baseViewport = page.getViewport({ scale: 1 });
+  const viewport = page.getViewport({ scale: displayWidth / baseViewport.width });
+  const pixelRatio = window.devicePixelRatio || 1;
+  canvas.width = Math.floor(viewport.width * pixelRatio);
+  canvas.height = Math.floor(viewport.height * pixelRatio);
+  canvas.style.aspectRatio = `${viewport.width} / ${viewport.height}`;
+  await page.render({ canvasContext: canvas.getContext('2d'), viewport, transform: pixelRatio !== 1 ? [pixelRatio, 0, 0, pixelRatio, 0, 0] : null }).promise;
+};
+
+if (window.location.protocol === 'file:') {
+  showResumeFallback();
+} else {
+  renderResume(resumeCanvas).then(() => {
+    const pixels = resumeCanvas.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, resumeCanvas.width, resumeCanvas.height).data;
+    const hasContent = pixels.some((value, index) => index % 4 !== 3 && value < 220);
+    if (!hasContent) showResumeFallback();
+  }).catch(() => { showResumeFallback(); });
+}
+
 const openResumePreview = () => {
-  const previewFrame = resumeSource.cloneNode(true);
-  previewFrame.classList.add('resume-preview-frame');
-  resumePreviewPaper.replaceChildren(previewFrame);
+  if (window.location.protocol === 'file:') {
+    const previewFrame = resumeFallback.cloneNode(true);
+    previewFrame.hidden = false;
+    previewFrame.className = 'resume-preview-frame';
+    resumePreviewPaper.replaceChildren(previewFrame);
+  } else {
+  const previewCanvas = document.createElement('canvas');
+  previewCanvas.className = 'resume-preview-canvas';
+  resumePreviewPaper.replaceChildren(previewCanvas);
+  renderResume(previewCanvas).catch(() => { previewCanvas.replaceWith(document.createTextNode('Resume preview unavailable. Use Download Resume as PDF.')); });
+  }
   resumePreview.classList.add('is-open');
   resumePreview.setAttribute('aria-hidden', 'false');
   document.body.classList.add('resume-preview-open');
